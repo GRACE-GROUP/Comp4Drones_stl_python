@@ -1,0 +1,28 @@
+# Various files
+
+*.asv
+*.dae
+*.stl
+*.gif
+*.fig
+*.eps
+*.pdf
+*.png
+*.mat
+*.slxc
+*.stl
+*.txt
+*.csv
+*.avi
+*.m~
+
+# But not these files...
+!trackThisFolder.txt
+
+# Miscellaneous
+!Quadrotor_plotting_model.mat
+
+# Maps
+!test_map_reach_avoid.txt
+
+/slprj

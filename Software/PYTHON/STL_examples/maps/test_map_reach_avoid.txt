@@ -1,0 +1,12 @@
+# Name of the map: test_map_reach_avoid
+# Comments are preceded by the # symbol
+
+# Map dimension [lowx  lowy  lowz    upperx  uppery upperz]
+map_dimension    -2.0   -2.0  0.0     2.0     2.0     2.0
+
+# The obstacle is modeled as polyhedra within the map [lowx lowy lowz upperx uppery upperz R G B]
+# This can be a matrix till 100 x 9 doubles
+# See https://www.rapidtables.com/convert/color/rgb-to-hex.html
+
+#            lowx       lowy     lowz     upperx    uppery   upperz   R    G   B
+obstacles    -0.5       -0.5      0.0      0.5       0.5      1.0    255   0   0

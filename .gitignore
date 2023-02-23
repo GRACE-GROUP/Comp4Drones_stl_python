@@ -1,0 +1,23 @@
+## MPT3 package
+
+Software/MATLAB/MPT3/tbxmanager/
+
+## CVX
+
+Software/MATLAB/cvx
+
+## MA27
+
+Software/MATLAB/ma27
+
+## Ipopt numerical solver
+
+Software/MATLAB/Ipopt-3.11.3
+Software/MATLAB/Ipopt-3.11.8
+
+## CASADI
+
+Software/MATLAB/casadi-windows
+Software/MATLAB/casadi
+Software/MATLAB/casadi-osx
+
