@@ -453,7 +453,7 @@ elif selection == 3:
 #                max_vel, max_acc, constraint_max_axis_vel, constraint_max_axis_acc, delta_min, C, C_dist,
 #                enable_Belta_variation, sequence, WPs_sequence,initial_velocity)
 
-stl_reach_avoid('/Users/valeriomariani/Desktop/PYTHON/Software/PYTHON/STL_examples/maps/' + map_name, selection, goal, drones, initial_position, motion_time, sampling_time, WPs_total,
+stl_reach_avoid('/Users/valeriomariani/Library/CloudStorage/Dropbox/Lavoro/Progetti/Ongoing/Comp4Drones/codeport/PYTHON/Software/PYTHON/STL_examples/maps/' + map_name, selection, goal, drones, initial_position, motion_time, sampling_time, WPs_total,
                 max_vel, max_acc, constraint_max_axis_vel, constraint_max_axis_acc, delta_min, C, C_dist,
                 enable_Belta_variation, sequence, WPs_sequence,initial_velocity)
 #END-VM
