@@ -1,6 +1,6 @@
 ## Reach and avoid scenario
 
-This file contains the instructions to run the MATLAB script for the reach and avoid scenario with STL specifications.
+This file contains the instructions to run the Python script for the reach and avoid scenario with STL specifications.
 
 ## Questions
 

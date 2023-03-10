@@ -1,13 +1,13 @@
 import numpy as np
-import cvxpy as cp
 
 from functions.nchoosek import nchoosek_vector_2
+from functions.intlinprog import find_solutions, MipModel
 from functions.plot_tour_multidepot import plot_tour_multidepot
 from functions.subtours_detection_multidepot import subtours_detection_multidepot
 
 
-def get_sequence_multidepot_cvx(initial_position: np.ndarray, goal: dict, n_drones: int, n_targets: int,
-                                delta_max: int) -> dict:
+def get_sequence_multidepot(initial_position: np.ndarray, goal: dict, n_drones: int, n_targets: int,
+                            delta_max: int): #  -> dict[int, np.ndarray]:
     edges_drone = nchoosek_vector_2(0, n_targets)
     n_edges_drone = edges_drone.shape[0]
 
@@ -36,32 +36,7 @@ def get_sequence_multidepot_cvx(initial_position: np.ndarray, goal: dict, n_dron
         for j in range(n_edges_drone * i, n_edges_drone * (i + 1)):
             Cost[j] = np.linalg.norm(nodes[int(edges[j, 1]), :] - nodes[int(edges[j, 0]), :])
 
-    #TODO: (VM) To be checked because the matlab code is different
-    # cvx plane
-    for i in range(n_drones):
-        x0_1 = cp.Variable(shape=(n_targets, 1), name='x' + str(i) + '_1')
-        x0_2 = cp.Variable(shape=(n_edges_drone - n_targets, 1), name='x' + str(i) + '_2')
-    # TODO:inja n_combos_drones sefr mishe to matlab ham hamintorie
-    if n_combos_drones > 0:
-        x2 = cp.Variable(shape=(n_combos_drones, 1), name='x2')
-    x3 = cp.Variable(shape=(n_targets * n_drones, 1), name='x3')
-    string = '['
-    for i in range(n_drones):
-        string += 'x' + str(i) + '_1;' + 'x' + str(i) + '_2;'
-
-    string += 'x2;' + 'x3]'
-
-    # x = eval(string) TODO:bayad matrixi az ona bashe 14*1
-
     objective_fcn = np.concatenate((Cost.T, np.ones((1, n_combos_drones)), np.zeros((1, n_targets * n_drones))), axis=1)
-
-    objective_fcn_cvx = []
-    for kk in range(n_edges + n_combos_drones + n_targets * n_drones):
-        objective_fcn_cvx = np.concatenate((objective_fcn_cvx, objective_fcn[kk] * x[kk]), axis=0)
-
-    objective = cp.Minimize(cp.sum(objective_fcn_cvx))
-    # cvx plane
-
     Aeq_targets = np.zeros((n_targets, n_edges + n_combos_drones + n_targets * n_drones))
 
     for i in range(n_targets):
@@ -96,14 +71,8 @@ def get_sequence_multidepot_cvx(initial_position: np.ndarray, goal: dict, n_dron
 
     A = np.zeros((2 * n_combos_drones, n_edges + n_combos_drones + n_targets * n_drones))
 
-    # cvx plane
-    constraints = []
-    for i in range(n_targets + n_targets * n_drones + n_drones):
-        constraints.append(Aeq[i, :] * x == beq[i])
-    # cvx plane
-
     for i in range(n_combos_drones):
-        # TODO: inja n_combos_drones sefr bode check nashode to baadi hatman check beshe
+        # TODO: (AB) inja n_combos_drones sefr bode check nashode to baadi hatman check beshe
         A[2 * i, n_edges_drone * (combos_drones[i, 0] - 1): n_edges_drone * combos_drones[i, 0]] = \
             Cost[n_edges_drone * (combos_drones[i, 0] - 1): n_edges_drone * combos_drones[i, 0]]
         A[2 * i, n_edges_drone * (combos_drones[i, 1] - 1): n_edges_drone * combos_drones[i, 1]] = \
@@ -120,10 +89,9 @@ def get_sequence_multidepot_cvx(initial_position: np.ndarray, goal: dict, n_dron
 
     b = np.zeros((2 * n_combos_drones, 1))
 
-    # cvx plane
-    for i in range(2 * n_combos_drones):
-        constraints.append(A[i, :] * x <= b[i])
-    # cvx plane
+    intcon = np.concatenate((range(1, n_edges + 1), range(n_edges + n_combos_drones + 1,
+                                                          n_edges + n_combos_drones + n_targets * n_drones + 1)),
+                            axis=0)
 
     lb = np.zeros((n_edges + n_combos_drones + n_targets * n_drones, 1))
     ub = np.concatenate(
@@ -136,19 +104,10 @@ def get_sequence_multidepot_cvx(initial_position: np.ndarray, goal: dict, n_dron
 
     bounds = tuple((i[0], j[0]) for i, j in zip(lb, ub))
 
-    # minimize = True
-    # mip_model = MipModel(objective_fcn, minimize, A, b, Aeq, beq, bounds=bounds, int_vars=[])
-    #
-    # x = find_solutions(mip_model)
+    minimize = True
+    mip_model = MipModel(objective_fcn, minimize, A, b, Aeq, beq, bounds=bounds, int_vars=[])
 
-    # cvx plane
-    for i in range(n_edges + n_combos_drones + n_targets * n_drones):
-        constraints.append(x[i] <= ub[i])
-        constraints.append(x[i] >= lb[i])
-
-    # TODO:fekr konam inja bayad moadele ro hal kone
-    # cvx plane
-
+    x = find_solutions(mip_model)
     x = np.round(x.x)
 
     edges_tour, tours, n_subtour = subtours_detection_multidepot(x, edges)
@@ -176,52 +135,17 @@ def get_sequence_multidepot_cvx(initial_position: np.ndarray, goal: dict, n_dron
         A = np.concatenate((A, A_p), axis=0)
         b = np.concatenate((b, b_p), axis=0)
 
-        # cvx plane
-        for i in range(n_drones):
-            x0_1 = cp.Variable(shape=(n_targets, 1), name='x' + str(i) + '_1')
-            x0_2 = cp.Variable(shape=(n_edges_drone - n_targets, 1), name='x' + str(i) + '_2')
-
-        x2 = cp.Variable(shape=(n_combos_drones, 1), name='x2')
-        x3 = cp.Variable(shape=(n_targets * n_drones, 1), name='x3')
-        string = '['
-        for i in range(n_drones):
-            string += 'x' + str(i) + '_1;' + 'x' + str(i) + '_2;'
-
-        string += 'x2;' + 'x3'
-        x = eval(string)
-
-        objective_fcn = np.concatenate((Cost.T, np.ones((1, n_combos_drones)), np.zeros((1, n_targets * n_drones))),
-                                       axis=1)
-
-        objective_fcn_cvx = []
-        for kk in range(n_edges + n_combos_drones + n_targets * n_drones):
-            objective_fcn_cvx = np.concatenate((objective_fcn_cvx, objective_fcn[kk] * x[kk]), axis=0)
-
-        objective = cp.Minimize(cp.sum(objective_fcn_cvx))
-
-        constraints = []
-        for i in range(n_targets + n_targets * n_drones + n_drones):
-            constraints.append(Aeq[i, :] * x == beq[i])
-
-        for i in range(A.shape[0]):
-            constraints.append(A[i, :] * x <= b[i])
-
-        for i in range(n_edges + n_combos_drones + n_targets * n_drones):
-            constraints.append(x[i] <= ub[i])
-            constraints.append(x[i] >= lb[i])
-
-        # TODO:fekr konam inja bayad moadele ro hal kone
-        # cvx plane
-
+        mip_model = MipModel(objective_fcn, minimize, A, b, Aeq, beq, bounds=bounds, int_vars=[])
+        #TODO: (VM) After debugging with Giuseppe we realized that the solution given here differs from that with linprog in matlab.
+        x = find_solutions(mip_model)
         x = np.round(x.x)
-
+        
         edges_tour, tours, n_subtour = subtours_detection_multidepot(x, edges)
 
-        plot_tour_multidepot(initial_position, goal_matrix, n_drones, edges_tour)
+    plot_tour_multidepot(initial_position, goal_matrix, n_drones, edges_tour)
 
-        sequence_ini = np.where(tours[0] == 0)[0]
-
-        sequence = {}
-        for i in range(n_drones):
-            sequence[i] = tours[0][sequence_ini[i]:sequence_ini[i + 1] + 1].T
-        return sequence
+    sequence_ini = np.where(tours[0] == 0)[0]
+    sequence = {}
+    for i in range(n_drones):
+        sequence[i] = tours[0][sequence_ini[i]:sequence_ini[i + 1] + 1].T
+    return sequence

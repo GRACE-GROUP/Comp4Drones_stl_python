@@ -13,10 +13,8 @@ import pip
 import numpy as np
 import time
 import math
-#START-VM
 import matplotlib
 matplotlib.interactive(True)
-#END-VM
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
@@ -129,9 +127,7 @@ def stl_reach_avoid(map_name, selection, goal, drones, initial_position, motion_
     dv = 0
 
     time = np.arange(sampling_time, motion_time + sampling_time, sampling_time)
-    #START-VM
     WPs_total = int(WPs_total)
-    #END-VM
     number_steps = WPs_total * time.size + 1
     
     Clen = 3 * (WPs_total + 1)
@@ -150,10 +146,7 @@ def stl_reach_avoid(map_name, selection, goal, drones, initial_position, motion_
     optimizationParameters['goal_elements'] = goal_elements
     optimizationParameters['WPs_total'] = WPs_total
     optimizationParameters['goal'] = goal
-    #START-VM
-    #WARNING!!! The following assignment is based on Giuseppe's explanation
     optimizationParameters['home'] = {key: {'goal_lb_N': np.array((number_steps,3)), 'goal_ub_N': np.array((number_steps,3))} for key in range(drones)}
-    #END-VM
     optimizationParameters['obstacles'] = obstacles
     optimizationParameters['map'] = map
     optimizationParameters['constraint_max_axis_vel'] = constraint_max_axis_vel
@@ -203,9 +196,7 @@ def stl_reach_avoid(map_name, selection, goal, drones, initial_position, motion_
         optimizationParameters['goal'][i]['goal_ub_N'] = np.tile(goal[i]['ub'], (number_steps, 1))
 
     # Filling lower and upper bounds for the home (target) regions
-    #START-VM
     home = {}
-    #END-VM
     for i in range(drones):
         #START-VM
         #home['lb'] = initial_position[:,i] - goal['ds']
@@ -236,22 +227,18 @@ def stl_reach_avoid(map_name, selection, goal, drones, initial_position, motion_
         # Symbolic expression of the problem. More information about the MX.sym and
         # MX.zeros commands are available here: https://web.casadi.org/docs/
         
-        #START-VM
         #initial_position_symbolic = ca.MX.sym(['p_' ,str(j), '_' ,str(0)], 3, 1);
         initial_position_symbolic = ca.MX.sym('p_'+str(j)+'_'+str(0), 3, 1);
-        #END-VM
         
         p.append(initial_position_symbolic)  # p is initialized as empty vector
         
         lbp.append(initial_position[:,j])
-        ubp.append(initial_position[:,j]) #VM TODO: upperbounds should be loaded from the txt file in /maps
+        ubp.append(initial_position[:,j]) #TODO: (VM) upperbounds should be loaded from the txt file in /maps
         
         # The symbolic variable v_j_0, with j goes from 1 to the number of
         # available drones
-        #START-VM
         #initial_velocity_symbolic = ca.MX.sym(['v_' ,str(j) ,'_', str(0)], 3, 1);
         initial_velocity_symbolic = ca.MX.sym('v_'+str(j)+'_'+str(0), 3, 1);
-        #END-VM
 
         v.append(initial_velocity_symbolic)  # v is initialized as empty vector
         
@@ -295,35 +282,15 @@ def stl_reach_avoid(map_name, selection, goal, drones, initial_position, motion_
             # The variable Clen allows to shift the vector depending on the
             # number of drones (j accounts for it in the first loop). The
             # numbers 1, 2, and 3 refer to the x, y, and z-axis, respectively.
-            
-            #START-VM TODO: possible issues: p is not well shaped and
-            #in matlab arrays start from 1 and not 0 as in python
-            #k * 3 + 1 + (j-1) * Clen = 4, k=1, j-1=0, Clen=129
-            #difference_p_x = p[k * 3 + 1 + (j-1) * Clen] - p[(k-1) * 3 + 1 + (j-1) * Clen] # along x-axis
-            #difference_p_y = p[k * 3 + 2 + (j-1) * Clen] - p[(k-1) * 3 + 2 + (j-1) * Clen] # along y-axis
-            #difference_p_z = p[k * 3 + 3 + (j-1) * Clen] - p[(k-1) * 3 + 3 + (j-1) * Clen] # along z-axis
-            #above the original code: let's fix first the issue with p
             difference_p_x = p[k+1][0] - p[k][0] # along x-axis
             difference_p_y = p[k+1][1] - p[k][1] # along y-axis
             difference_p_z = p[k+1][2] - p[k][2] # along z-axis
-            #END-VM
             
             # velocity variation for all axes, i.e.,v{k} - v{k-1}. This
             # is possible because the problem is decoupled along each axis of
             # the inertial frame. 
             # As before, the variable Clen allows shifting the vector depending
-            # on the number of drones (the first loop runs over it)
-
-            #START-VM
-            #v_x_k = v[k * 3 + 1 + (j-1) * Clen]  # v{k} along x-axis
-            #v_y_k = v[k * 3 + 2 + (j-1) * Clen]  # v{k} along y-axis
-            #v_z_k = v[k * 3 + 3 + (j-1) * Clen]  # v{k} along z-axis
-            #
-            ## km1 stands for k minus 1
-            #v_x_km1 = v[(k-1) * 3 + 1 + (j-1) * Clen] # v{k-1} along x-axis
-            #v_y_km1 = v[(k-1) * 3 + 2 + (j-1) * Clen] # v{k-1} along y-axis
-            #v_z_km1 = v[(k-1) * 3 + 3 + (j-1) * Clen] # v{k-1} along z-axis
-            
+            # on the number of drones (the first loop runs over it)           
             v_x_k = v[k][0]  # v{k} along x-axis
             v_y_k = v[k][1]  # v{k} along y-axis
             v_z_k = v[k][2]  # v{k} along z-axis
@@ -333,36 +300,20 @@ def stl_reach_avoid(map_name, selection, goal, drones, initial_position, motion_
             v_y_km1 = v[k+1][1] # v{k-1} along y-axis
             v_z_km1 = v[k+1][2] # v{k-1} along z-axis
             
-            #END-VM
-
 
             # Computing \alpha, \beta, and \gamma values per each axis. a_0 is
             # supposed to be equal to zero
-            #alfa_x  = M[0,:] * [[difference_p_x - motion_time * v_x_km1], [dv],[da]]
-            #beta_x  = M[1,:] * [[difference_p_x - motion_time * v_x_km1], [dv],[da]]
-            #gamma_x = M[2,:] * [[difference_p_x - motion_time * v_x_km1], [dv],[da]]
-
-            #alfa_y  = M[0,:] * [[difference_p_y - motion_time * v_y_km1], [dv],[da]]
-            #beta_y  = M[1,:] * [[difference_p_y - motion_time * v_y_km1], [dv],[da]]
-            #gamma_y = M[2,:] * [[difference_p_y - motion_time * v_y_km1], [dv],[da]]
-
-            #alfa_z  = M[0,:] * [[difference_p_z - motion_time * v_z_km1], [dv],[da]]
-            #beta_z  = M[1,:] * [[difference_p_z - motion_time * v_z_km1], [dv],[da]]
-            #gamma_z = M[2,:] * [[difference_p_z - motion_time * v_z_km1], [dv],[da]]
-            
-            alfa_x  = np.dot(M[0,:], [difference_p_x - motion_time * v_x_km1, dv, da])
+            alpha_x  = np.dot(M[0,:], [difference_p_x - motion_time * v_x_km1, dv, da])
             beta_x  = np.dot(M[1,:], [difference_p_x - motion_time * v_x_km1, dv, da])
             gamma_x = np.dot(M[2,:], [difference_p_x - motion_time * v_x_km1, dv, da])
 
-            alfa_y  = np.dot(M[0,:], [difference_p_y - motion_time * v_y_km1, dv, da])
+            alpha_y  = np.dot(M[0,:], [difference_p_y - motion_time * v_y_km1, dv, da])
             beta_y  = np.dot(M[1,:], [difference_p_y - motion_time * v_y_km1, dv, da])
             gamma_y = np.dot(M[2,:], [difference_p_y - motion_time * v_y_km1, dv, da])
 
-            alfa_z  = np.dot(M[0,:], [difference_p_z - motion_time * v_z_km1, dv, da])
+            alpha_z  = np.dot(M[0,:], [difference_p_z - motion_time * v_z_km1, dv, da])
             beta_z  = np.dot(M[1,:], [difference_p_z - motion_time * v_z_km1, dv, da])
             gamma_z = np.dot(M[2,:], [difference_p_z - motion_time * v_z_km1, dv, da])
-
-            #END-VM
 
 
             # Velocity at the final/end point. This comes from eq. 22 of D'Andrea's
@@ -370,11 +321,11 @@ def stl_reach_avoid(map_name, selection, goal, drones, initial_position, motion_
             # expressed in terms of position and velocity. Eventually, we want
             # to be in the final region and go there with zero velocity. v_f
             # stands for velocity final
-            v_f_x = (alfa_x/24) * motion_time**4 + (beta_x/6) * motion_time**3 +(gamma_x/2) * motion_time**2 + v_x_km1
+            v_f_x = (alpha_x/24) * motion_time**4 + (beta_x/6) * motion_time**3 +(gamma_x/2) * motion_time**2 + v_x_km1
 
-            v_f_y = (alfa_y/24)*motion_time**4 + (beta_y/6) * motion_time**3 + (gamma_y/2) * motion_time**2 + v_y_km1
+            v_f_y = (alpha_y/24)*motion_time**4 + (beta_y/6) * motion_time**3 + (gamma_y/2) * motion_time**2 + v_y_km1
 
-            v_f_z = (alfa_z/24)*motion_time**4 + (beta_z/6) * motion_time**3 + (gamma_z/2) * motion_time**2 + v_z_km1;
+            v_f_z = (alpha_z/24)*motion_time**4 + (beta_z/6) * motion_time**3 + (gamma_z/2) * motion_time**2 + v_z_km1;
 
             # "g" contains all the constraints to the optimization problem:
             # - constraint on the optimal acceleration (see eq.(24) D'Andrea's
