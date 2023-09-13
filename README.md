@@ -14,14 +14,16 @@ This repository contains the Python code for a reach and avoid scenario formulat
   doi       = {10.1109/LRA.2021.3068114}
 }
 
-@ARTICLE{CaballeroAR2022,
-  author    = {{Caballero}, Alvaro and {Silano}, Giuseppe},
-  title     = {{A Signal Temporal Logic Motion Planner for Bird Diverter Installation Tasks with Multi-Robot Aerial Systems}},
-  year      = {2022},
-  month     = {October},
-  doi       = {10.48550/arXiv.2210.09750},
-  journal   = {arXiv preprint arXiv:2210.09750}
+@ARTICLE{CabelleroIEEEAccess,
+  author    = {Caballero, Alvaro and Silano, Giuseppe},
+  journal   = {IEEE Access}, 
+  title     = {{A Signal Temporal Logic Motion Planner for Bird Diverter Installation Tasks With Multi-Robot Aerial Systems}}, 
+  year      = {2023},
+  volume    = {11},
+  pages     = {81361--81377},
+  doi       = {10.1109/ACCESS.2023.3300240}
 }
+
 ```
 
 ## Disclaimer
